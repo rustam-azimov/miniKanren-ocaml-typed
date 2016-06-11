@@ -39,7 +39,8 @@ clean:
 #REGRES_CASES=$(shell seq -s " " -f %03g 0 11)
 #REGRES_CASES:=$(REGRES_CASES) bad000
 #REGRES_CASES:=$(REGRES_CASES) Diseq000
-REGRES_CASES := 000 004 005 009 0match 01match 02match 0domains
+REGRES_CASES := 000 004 005 009 0match 01match 02match 0domains 0HG
+
 
 #$(warning $(REGRES_CASES))
 define TESTRULES
