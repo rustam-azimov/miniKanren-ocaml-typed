@@ -48,10 +48,13 @@ let rec uniono l s ls =
 *)
 
 let _ =
+  (*containo tests*)
+  run1 ~n:1  (REPR (fun q -> containo q (of_list [1]) !true ) );
+  run1 ~n:10  (REPR (fun q -> containo q (of_list [1]) !false ) );
+  
+  (*uniono tests*)
   run1 ~n:1  (REPR (fun q -> uniono !Nil (of_list [1]) q ) );
   run1 ~n:1  (REPR (fun q -> uniono q (of_list [1]) (of_list [2;3;1]) ) );
   run1 ~n:1  (REPR (fun q -> uniono (of_list [1]) q (of_list [1;2;3]) ) );
 
-  run1 ~n:1  (REPR (fun q -> containo q (of_list [1]) !true ) );
-  run1 ~n:10  (REPR (fun q -> containo q (of_list [1]) !false ) );
   ()
