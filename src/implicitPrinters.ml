@@ -51,6 +51,11 @@ implicit module Show_string : (SHOW with type t = string) = struct
     let show x = x
 end
 
+implicit module Show_char : (SHOW with type t = char) = struct
+    type t = char
+    let show x = String.make 1 x
+end
+
 implicit module Show_pair {X : SHOW} {Y : SHOW}: (SHOW with type t = X.t * Y.t) = struct
     type t = X.t * Y.t
     let show (x,y) = sprintf "(%s,%s)" (X.show x) (Y.show y)
