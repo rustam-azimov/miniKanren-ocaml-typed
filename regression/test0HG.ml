@@ -161,13 +161,12 @@ let _ =
   							                    &&& (q === (of_list [true])) ) );  
   run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s !(of_list_hack ['a';'b']) q )
                                                 &&& (q === (of_list [true])) ) );
-*)
   (*Hypergrammar_2 tests*)
   run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s !(of_list_hack ['a';'b']) q)
   							                    &&& (q === (of_list [true])) ) );  
   run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s !(of_list_hack ['a';'b';'c']) q )
                                                 &&& (q === (of_list [true])) ) );
   run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (q) (of_list [true])) ) );
-
+*)
 
   ()
