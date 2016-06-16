@@ -90,20 +90,20 @@ let rec concato l s ls =
 *)
 let rec h1_f x1 x2 x3 rh =
  conde [
-   (rh === !Nil);
-   fresh (x1' x2' x3' rh' x1x2 x1x2x3)
-   (concato (of_list [of_list_hack ['a']]) x1 x1')
-   (concato (of_list [of_list_hack ['b']]) x2 x2')
-   (concato (of_list [of_list_hack ['c']]) x3 x3')
-   (h1_f x1' x2' x3' rh')
-   (concato x1 x2 x1x2)
-   (concato x1x2 x3 x1x2x3)
-   (uniono rh' x1x2x3 rh)
+ 	(rh === !Nil);
+	fresh (x1' x2' x3' rh' x1x2 x1x2x3)
+		(concato (strSet ["a"]) x1 x1')
+   		(concato (strSet ["b"]) x2 x2')
+   		(concato (strSet ["c"]) x3 x3')
+   		(h1_f x1' x2' x3' rh')
+   		(concato x1 x2 x1x2)
+   		(concato x1x2 x3 x1x2x3)
+   		(uniono rh' x1x2x3 rh)
  ]
  
-let h1_s rh = h1_f (of_list [of_list_hack ['a']])
-              (of_list [of_list_hack ['b']])
-              (of_list [of_list_hack ['c']])
+let h1_s rh = h1_f (strSet ["a"])
+              (strSet ["b"])
+              (strSet ["c"])
               rh
 
 (*
@@ -117,12 +117,69 @@ let h2_f x rh =
 	concato x x rh
 
 let h2_g rh =
-	(rh === (of_list [of_list_hack ['a']; of_list_hack ['b']]))
+	(rh === (strSet ["a"; "b"]))
 
 let h2_s rh =
 	fresh (rh_g)
 		(h2_g rh_g)
 		(h2_f rh_g rh)
+
+(*
+	Hypergrammar_3( {a, b}* ):
+	S -> f(eps) (*eps is empty_string*)
+	f(X) -> f(a*X) + X
+	f(X) -> f(b*X) + X
+	f(X) -> empty_set
+*)
+
+let rec h3_f x rh =
+ conde [
+	(rh === !Nil);
+   	fresh (ax rh')
+   		(concato (strSet ["a"]) x ax)
+   		(h3_f ax rh')
+   		(uniono rh' x rh);
+   	fresh (bx rh')
+   		(concato (strSet ["b"]) x bx)
+   		(h3_f bx rh')
+   		(uniono rh' x rh)
+ ]
+
+let h3_s rh = h3_f (strSet [""]) rh
+
+(*
+	Hypergrammar_4( a*b* ):
+	S -> A(eps)*B(eps)
+	A(X) -> A(a*X) + X
+	A(X) -> empty_set
+	B(X) -> B(b*X) + X
+	B(X) -> empty_set
+*)
+
+let rec h4_A x rh =
+ conde [
+	(rh === !Nil);
+   	fresh (ax rh')
+   		(concato (strSet ["a"]) x ax)
+   		(h4_A ax rh')
+   		(uniono rh' x rh)
+ ]
+
+let rec h4_B x rh =
+ conde [
+	(rh === !Nil);
+   	fresh (bx rh')
+   		(concato (strSet ["b"]) x bx)
+   		(h4_B bx rh')
+   		(uniono rh' x rh)
+ ]
+
+let h4_s rh =
+	fresh (rh_a rh_b)
+		(h4_A (strSet [""]) rh_a)
+		(h4_B (strSet [""]) rh_b)
+		(concato rh_a rh_b rh)
+
 
 (*check if str is correct string in language of hypergrammar with start_rule*)
 let hypergrammar start_rule str correct =
@@ -179,6 +236,26 @@ let _ =
   run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (lstr "abc") q )
                                                 &&& (q === (lbool true)) ) );
   run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (q) (lbool true)) ) );
+  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (q) (lbool false)) ) );
+  
+  (*Hypergrammar_3 tests*)
+  run1 ~n:(1)  (REPR (fun q -> (hypergrammar h3_s (lstr "abaabb") q)
+  							                    &&& (q === (lbool true)) ) );
+  run1 ~n:(1)  (REPR (fun q -> (hypergrammar h3_s q (lbool false))) );  
+  (*(*inf*)
+  run1 ~n:(1)  (REPR (fun q -> (hypergrammar h3_s (lstr "abc") q )
+                                                &&& (q === (lbool true)) ) );
+  *)
+  run1 ~n:(40)  (REPR (fun q -> (hypergrammar h3_s (q) (lbool true)) ) );
+
+  (*Hypergrammar_4 tests*)
+  run1 ~n:(1)  (REPR (fun q -> (hypergrammar h4_s (lstr "aaabb") q)
+  							                    &&& (q === (lbool true)) ) );
+  (*(*inf*)  
+  run1 ~n:(1)  (REPR (fun q -> (hypergrammar h4_s (lstr "aababb") q )
+                                                &&& (q === (lbool true)) ) );
+  *)
+  run1 ~n:(40)  (REPR (fun q -> (hypergrammar h4_s (q) (lbool true)) ) );
 
 
   ()
