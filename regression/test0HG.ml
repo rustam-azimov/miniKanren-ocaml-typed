@@ -1,7 +1,25 @@
 open MiniKanren
 open Tester.M
 open ImplicitPrinters
-open Tester 
+open Tester
+
+(*convert string to list of chars*)
+let toChars s =
+  let rec helper i l =
+    if i < 0 then l else helper (i - 1) (s.[i] :: l) in
+  helper (String.length s - 1) [] 
+
+let hackStr s = of_list_hack (toChars s)
+let lstr s = !(hackStr s)
+let lbool (b:bool) = of_list [b]
+
+(*convert list of strings to list of (llist of chars)*)
+let rec toHackList = function
+	| [] -> []
+	| x :: xs -> ((hackStr x) :: (toHackList xs))
+
+(*build representation of set of strings*)
+let strSet xs = of_list (toHackList xs)  
 
 (*check if x contains in l*)
 let rec containo x l ans =
@@ -118,55 +136,49 @@ let hypergrammar start_rule str correct =
 let _ =
 (*
   (*containo tests*)
-  run1 ~n:1  (REPR (fun q -> containo q (of_list [1]) !true ) );
-  run1 ~n:10  (REPR (fun q -> containo q (of_list [1]) !false ) );
+  run1 ~n:1  (REPR (fun q -> containo q (lstr "a") !true ) );
+  run1 ~n:(-1)  (REPR (fun q -> containo q (lstr "a") !false ) );
 
   (*uniono tests*)
-  run1 ~n:1  (REPR (fun q -> uniono (of_list [1]) (of_list [1]) q ) );
-  run1 ~n:2  (REPR (fun q -> uniono q (of_list [1]) (of_list [2;3;1]) ) );
-  run1 ~n:1  (REPR (fun q -> uniono (of_list [1]) q (of_list [1;2;3]) ) );
+  run1 ~n:1  (REPR (fun q -> uniono (strSet ["a"]) (strSet ["a"]) q ) );
+  run1 ~n:2  (REPR (fun q -> uniono q (strSet ["a"]) (strSet ["b";"c";"a"]) ) );
+  run1 ~n:1  (REPR (fun q -> uniono (strSet ["a"]) q (strSet ["b";"c";"a"]) ) );
 
   (*appendo tests*)
-  run1 ~n:1  (REPR (fun q -> appendo !Nil (of_list [1]) q ) );
-  run1 ~n:1  (REPR (fun q -> appendo q (of_list [1]) (of_list [2;3;1]) ) );
-  run1 ~n:1  (REPR (fun q -> appendo (of_list [1]) q (of_list [1;2;3]) ) );
+  run1 ~n:(-1)  (REPR (fun q -> appendo !Nil (strSet ["a"]) q ) );
+  run1 ~n:(-1)  (REPR (fun q -> appendo q (strSet ["a"]) (strSet ["b";"c";"a"]) ) );
+  run1 ~n:(-1)  (REPR (fun q -> appendo (strSet ["a"]) q (strSet ["a";"b";"c"]) ) );
 
   (*prependo tests*)
-  run1 ~n:1  (REPR (fun q -> prependo (of_list ['a'; 'b']) 
-  									   (of_list [of_list_hack ['c';'d']; 
-                                                 of_list_hack ['e';'f']] )
+  run1 ~n:1  (REPR (fun q -> prependo (lstr "ab") 
+  									   (strSet ["cd"; "ef"])
   									   q ) );
   run1 ~n:1  (REPR (fun q -> prependo (q) 
-  									   (of_list [of_list_hack ['c';'d']; 
-                                                 of_list_hack ['e';'f']])
-  									   (of_list [of_list_hack ['a';'c';'d']; 
-                                                 of_list_hack ['a';'e';'f']]) ) );
+  									   (strSet ["cd"; "ef"])
+  									   (strSet ["acd"; "aef"]) ) );
   									   
   (*concato tests*)
-  run1 ~n:1  (REPR (fun q -> concato (of_list [of_list_hack ['a';'b']; 
-                                                 of_list_hack ['c';'d']]) 
-  									   (of_list [of_list_hack ['e';'f']; 
-                                                 of_list_hack ['g';'h']] )
+  run1 ~n:1  (REPR (fun q -> concato (strSet ["ab"; "cd"]) 
+  									   (strSet ["ef"; "gh"])
   									   q ) );
   run1 ~n:1  (REPR (fun q -> concato (q) 
-  									  (of_list [of_list_hack ['e';'f']; 
-                                                of_list_hack ['g';'h']] )
-  									  (of_list [of_list_hack ['a';'e';'f']; 
-                                                of_list_hack ['a';'g';'h'];
-                                                of_list_hack ['b';'e';'f']; 
-                                                of_list_hack ['b';'g';'h']] ) ) );
-
-  (*Hypergrammar_1 tests*)
-  run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s !(of_list_hack ['a';'b';'c']) q)
-  							                    &&& (q === (of_list [true])) ) );  
-  run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s !(of_list_hack ['a';'b']) q )
-                                                &&& (q === (of_list [true])) ) );
-  (*Hypergrammar_2 tests*)
-  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s !(of_list_hack ['a';'b']) q)
-  							                    &&& (q === (of_list [true])) ) );  
-  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s !(of_list_hack ['a';'b';'c']) q )
-                                                &&& (q === (of_list [true])) ) );
-  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (q) (of_list [true])) ) );
+  									  (strSet ["ef"; "gh"])
+  									  (strSet ["aef"; "agh"; "bef"; "bgh"]) ) );
 *)
+  (*Hypergrammar_1 tests*)
+  run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s (lstr "abc") q)
+  							                    &&& (q === (lbool true)) ) );
+  (*(*inf*)  
+  run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s (lstr "ab") q )
+                                                &&& (q === (lbool true)) ) );
+  *)
+  
+  (*Hypergrammar_2 tests*)
+  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (lstr "ab") q)
+  							                    &&& (q === (lbool true)) ) );  
+  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (lstr "abc") q )
+                                                &&& (q === (lbool true)) ) );
+  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (q) (lbool true)) ) );
+
 
   ()
