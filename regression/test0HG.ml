@@ -60,9 +60,43 @@ let rec concato l s ls =
       (concato l' s ls')
  ]
 
-open ImplicitPrinters
+
+(*
+	Hypergrammar_1({a^n b^n c^n}):
+	S -> f(a, b, c)
+	f(X1, X2, X3) -> f(a*X1, b*X2, c*X3) + X1*X2*X3
+	f(X1, X2, X3) -> empty_set
+*)
+let rec h1_f x1 x2 x3 rh =
+ conde [
+   (rh === !Nil);
+   fresh (x1' x2' x3' rh' x1x2 x1x2x3)
+   (concato (of_list [of_list_hack ['a']]) x1 x1')
+   (concato (of_list [of_list_hack ['b']]) x2 x2')
+   (concato (of_list [of_list_hack ['c']]) x3 x3')
+   (h1_f x1' x2' x3' rh')
+   (concato x1 x2 x1x2)
+   (concato x1x2 x3 x1x2x3)
+   (uniono rh' x1x2x3 rh)
+ ]
+ 
+let h1_s out = h1_f (of_list [of_list_hack ['a']])
+              (of_list [of_list_hack ['b']])
+              (of_list [of_list_hack ['c']])
+              out
+
+
+(*check if str is correct string in language of hypergrammar with start_rule*)
+let hypergrammar start_rule str correct =
+	fresh (set_of_strings)
+		(start_rule set_of_strings)
+		(conde [
+			(containo str set_of_strings !true) &&& (correct === (of_list [true]));
+			(containo str set_of_strings !false) &&& (correct === (of_list [false]));
+		])
 
 let _ =
+(*
   (*containo tests*)
   run1 ~n:1  (REPR (fun q -> containo q (of_list [1]) !true ) );
   run1 ~n:10  (REPR (fun q -> containo q (of_list [1]) !false ) );
@@ -101,4 +135,11 @@ let _ =
                                                 of_list_hack ['a';'g';'h'];
                                                 of_list_hack ['b';'e';'f']; 
                                                 of_list_hack ['b';'g';'h']] ) ) );
+*)
+
+  (*Hypergrammar_1 tests*)
+  run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s !(of_list_hack ['a';'b';'c']) q)
+  							                    &&& (q === (of_list [true])) ) );  
+  run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s !(of_list_hack ['a';'b']) q )
+                                                &&& (q === (of_list [true])) ) );
   ()
