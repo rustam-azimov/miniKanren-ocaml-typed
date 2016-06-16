@@ -65,7 +65,10 @@ let rec concato l s ls =
 	Hypergrammar_1({a^n b^n c^n}):
 	S -> f(a, b, c)
 	f(X1, X2, X3) -> f(a*X1, b*X2, c*X3) + X1*X2*X3
-	f(X1, X2, X3) -> empty_set
+	f(X1, X2, X3) -> empty_set,
+	where:
+		* --- concatination under sets of strings
+		+ --- union under sets of strings
 *)
 let rec h1_f x1 x2 x3 rh =
  conde [
@@ -80,11 +83,28 @@ let rec h1_f x1 x2 x3 rh =
    (uniono rh' x1x2x3 rh)
  ]
  
-let h1_s out = h1_f (of_list [of_list_hack ['a']])
+let h1_s rh = h1_f (of_list [of_list_hack ['a']])
               (of_list [of_list_hack ['b']])
               (of_list [of_list_hack ['c']])
-              out
+              rh
 
+(*
+	Hypergrammar_2({aa, ba, ab, bb}):
+	S -> f(g)
+	f(X) -> X*X
+	g -> {a, b}
+*)
+
+let h2_f x rh =
+	concato x x rh
+
+let h2_g rh =
+	(rh === (of_list [of_list_hack ['a']; of_list_hack ['b']]))
+
+let h2_s rh =
+	fresh (rh_g)
+		(h2_g rh_g)
+		(h2_f rh_g rh)
 
 (*check if str is correct string in language of hypergrammar with start_rule*)
 let hypergrammar start_rule str correct =
@@ -135,11 +155,19 @@ let _ =
                                                 of_list_hack ['a';'g';'h'];
                                                 of_list_hack ['b';'e';'f']; 
                                                 of_list_hack ['b';'g';'h']] ) ) );
-*)
 
   (*Hypergrammar_1 tests*)
   run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s !(of_list_hack ['a';'b';'c']) q)
   							                    &&& (q === (of_list [true])) ) );  
   run1 ~n:1  (REPR (fun q -> (hypergrammar h1_s !(of_list_hack ['a';'b']) q )
                                                 &&& (q === (of_list [true])) ) );
+*)
+  (*Hypergrammar_2 tests*)
+  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s !(of_list_hack ['a';'b']) q)
+  							                    &&& (q === (of_list [true])) ) );  
+  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s !(of_list_hack ['a';'b';'c']) q )
+                                                &&& (q === (of_list [true])) ) );
+  run1 ~n:(-1)  (REPR (fun q -> (hypergrammar h2_s (q) (of_list [true])) ) );
+
+
   ()
