@@ -180,7 +180,6 @@ let h4_s rh =
 		(h4_B (strSet [""]) rh_b)
 		(concato rh_a rh_b rh)
 
-
 (*check if str is correct string in language of hypergrammar with start_rule*)
 let hypergrammar start_rule str correct =
 	fresh (set_of_strings)
@@ -241,7 +240,7 @@ let _ =
   (*Hypergrammar_3 tests*)
   run1 ~n:(1)  (REPR (fun q -> (hypergrammar h3_s (lstr "abaabb") q)
   							                    &&& (q === (lbool true)) ) );
-  run1 ~n:(1)  (REPR (fun q -> (hypergrammar h3_s q (lbool false))) );  
+  run1 ~n:(40)  (REPR (fun q -> (hypergrammar h3_s q (lbool false))) );  
   (*(*inf*)
   run1 ~n:(1)  (REPR (fun q -> (hypergrammar h3_s (lstr "abc") q )
                                                 &&& (q === (lbool true)) ) );
